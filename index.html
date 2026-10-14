@@ -93,11 +93,23 @@
         </table>
       </div>
       <div class="addr-card">
-        <h3>Solstice Heating &amp; Air</h3>
+        <h3 id="addr-biz">Solstice Heating &amp; Air</h3>
         <p>📍 <span id="addr-line">4208 E Cactus Rd, Phoenix, AZ 85032</span></p>
         <p>📞 <a id="phone-line" href="tel:+16025550164">(602) 555-0164</a> — 24/7 emergency line</p>
         <p style="margin-top:14px"><a href="#" class="btn btn-ember btn-sm" data-action="book">Book a tech visit</a></p>
       </div>
+    </div>
+    <div class="inbox-card">
+      <h3>📋 Captured leads</h3>
+      <p>Curious what &ldquo;Saved to your dashboard&rdquo; actually looks like? This inbox preview shows every lead Aria captures &mdash; stored in your browser&rsquo;s local storage only. Nothing here ever leaves this page.</p>
+      <button id="inbox-toggle" class="btn btn-ember btn-sm" aria-expanded="false" aria-controls="inbox-panel">📋 View inbox <span id="inbox-count" class="inbox-count">0</span></button>
+    </div>
+    <div id="inbox-panel" class="inbox-panel" hidden>
+      <div class="inbox-head">
+        <b>📋 Captured leads inbox</b>
+        <span class="inbox-local">Browser-local preview &mdash; leads never leave this browser</span>
+      </div>
+      <div id="inbox-list" class="inbox-list"></div>
     </div>
   </div>
 </section>
@@ -120,8 +132,8 @@
 </footer>
 
 <!-- ============ ARIA CHAT WIDGET ============ -->
-<button id="maya-bubble" aria-label="Chat with Aria">❄️<span id="maya-unread" class="hidden">1</span></button>
-<div id="maya-panel" role="dialog" aria-label="Chat with Aria">
+<button id="maya-bubble" aria-label="Chat with us">❄️<span id="maya-unread" class="hidden">1</span></button>
+<div id="maya-panel" role="dialog" aria-label="Chat">
   <div class="maya-head">
     <div class="maya-avatar" id="maya-avatar-letter">A</div>
     <div class="who"><b id="maya-name">Aria</b><span class="status"><i class="online"></i>Online — replies instantly</span></div>
