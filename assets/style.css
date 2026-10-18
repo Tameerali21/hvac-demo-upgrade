@@ -79,6 +79,12 @@ section.block{padding:72px 0}
 .addr-card p{margin:.3em 0; font-size:15px}
 .addr-card a{color:var(--blue-dark); font-weight:600}
 
+/* tap-to-call CTA (fleet standard, 2026-10-18): ember button in the visit card */
+.call-cta{margin-top:16px; background:var(--ember); color:#fff; box-shadow:0 8px 20px rgba(255,122,26,.4)}
+.call-cta:hover{transform:translateY(-2px); background:var(--ember-dark); color:#fff}
+.call-link{font-weight:700; color:var(--navy-deep); text-decoration:none; border-bottom:2px solid var(--ember)}
+.call-link:hover{border-color:var(--navy-deep)}
+
 /* footer */
 footer{padding:34px 0 90px; text-align:center; color:var(--muted); font-size:13.5px}
 

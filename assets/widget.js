@@ -24,8 +24,11 @@ setText("addr-biz", BIZ);
 setText("addr-line", ADDRESS); setText("strip-addr", ADDRESS);
 setText("phone-line", PHONE); setText("strip-phone", PHONE);
 setText("eyebrow-city", CITY); setText("hero-city", CITY.split(",")[0]);
-var sp = document.getElementById("strip-phone"); if(sp) sp.href = "tel:+" + PHONE.replace(/\D/g,"");
-var pl = document.getElementById("phone-line");  if(pl) pl.href = "tel:+" + PHONE.replace(/\D/g,"");
+/* tap-to-call binding (fleet standard, 2026-10-18): every tel: CTA follows ?phone=,
+   digits-only in the href so an injected param can't smuggle markup/JS. */
+document.querySelectorAll('#call-cta, #strip-phone, #phone-line, a[data-biz="phone"]').forEach(function (el) {
+  el.setAttribute('href', 'tel:' + String(PHONE).replace(/[^+\d]/g, ''));
+});
 setText("maya-name", HOST); setText("maya-avatar-letter", HOST[0]);
 setText("maya-credit", BIZ + " · " + CITY);
 document.title = BIZ + " — AC Repair, Install & 24/7 Emergency in " + CITY;
@@ -86,6 +89,14 @@ var hasUnread = false, opened = false;
 
 function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 function digits(s){ return String(s||"").replace(/\D/g,""); }
+
+/* ---------- tap-to-call helper (fleet standard, 2026-10-18) ----------
+   href is digits-and-plus-only (XSS-safe even from a hostile ?phone= param);
+   the visible text reuses the normal phone escaping. */
+function callLinkHtml() {
+  var href = 'tel:' + String(PHONE).replace(/[^+\d]/g, '');
+  return '<a class="call-link" href="' + esc(href) + '">&#128222; Call ' + esc(PHONE) + '</a>';
+}
 
 /* word-start keyword match (proven standard, 2026-10-03): "loCATed" must not
    trip a "cat" keyword, "recall" must not trip "call", "anywhere" must not trip
@@ -290,7 +301,7 @@ function confirmBooking(){
     "🧊 <b>"+esc(step.data.reason)+"</b><br>📅 "+esc(step.data.day)+" at "+esc(step.data.time)+"<br>👤 "+esc(step.data.name)+"<br>🔖 Ref: <span class='ref'>"+ref+"</span>"
   ], function(){
     var extra = step.data.phone ? "We'll text <b>"+esc(step.data.phone)+"</b> when the tech is on the way. " : "";
-    say(extra + "Please clear a path to the unit if you can — see you soon! 😊", function(){
+    say(extra + "Please clear a path to the unit if you can — see you soon! 😊<br><br>Prefer to talk it through? " + callLinkHtml(), function(){
       setChips([{label:"Book another", value:"book another"}]);
       step = { flow:null, i:0, data:{} };
     });
@@ -479,7 +490,7 @@ function route(text){
   if(has(t, "emergency", "midnight", "after hour", "after-hour", "closed right now", "11:42", "no cool", "no-cool", "a/c died", "ac died", "unit died", "108")){ startAfterHours(); return; }
   /* location branch runs before service branches (word-start matching fixes the
      "loCATed"-style substring class; "anywhere" no longer trips "where") */
-  if(has(t, "where", "location", "address", "park", "direction")){ say("You'll find us at <b>"+esc(ADDRESS)+"</b> 📍 — but honestly, our techs come to <i>you</i> anywhere in "+esc(CITY)+". Want me to book a visit?", function(){ setChips([{label:"Book service", value:"book"}]); }); return; }
+  if(has(t, "where", "location", "address", "park", "direction")){ say("You'll find us at <b>"+esc(ADDRESS)+"</b> 📍 — but honestly, our techs come to <i>you</i> anywhere in "+esc(CITY)+".<br><br>" + callLinkHtml() + " — we're happy to help anytime.<br><br>Want me to book a visit?", function(){ setChips([{label:"Book service", value:"book"}]); }); return; }
   if(has(t, "book", "appoint", "schedul", "service call", "send a tech", "tech visit", "visit") && !/book another/.test(t)){ startBooking(); return; }
   if(/book another/.test(t)){ startBooking(); return; }
   if(has(t, "quote", "estim", "ballpark")){ startQuote(); return; }
@@ -491,7 +502,7 @@ function route(text){
   if(has(t, "air quality", "filter", "allerg", "humid")){ say(airHtml(), function(){ setChips([{label:"Book service", value:"book"}]); }); return; }
   if(has(t, "price", "cost", "how much", "pricing")){ say(pricesHtml(), function(){ setChips([{label:"Free quote estimate", value:"quote"}]); }); return; }
   if(has(t, "hour", "open", "close", "when do you")){ say(hoursHtml()); return; }
-  if(has(t, "human", "real person", "speak", "talk to someone", "call") || (has(t, "phone") && !/skip/.test(t))){ say("You can reach a human anytime at <b>"+esc(PHONE)+"</b> 📞 — 24/7 emergency line. Or I can keep helping right here — what's up?"); return; }
+  if(has(t, "human", "real person", "speak", "talk to someone", "call") || (has(t, "phone") && !/skip/.test(t))){ say("You can reach a human anytime — " + callLinkHtml() + " 📞 on our 24/7 emergency line. Or I can keep helping right here — what's up?"); return; }
   if(has(t, "thank", "thanks", "thx")){ say("Anytime! 😊 Anything else — booking, pricing, or a quote estimate?"); return; }
   if(has(t, "goodbye", "good night") || /\bbye\b/.test(t)){ say("Stay cool out there! ❄️ I'll be here whenever you need "+esc(BIZ)+"."); setChips([]); step={flow:null,i:0,data:{}}; return; }
   if(/\b(hi|hello|hey)\b/.test(t) || /^yo$/.test(t)){ say("Hey! 👋 What can I do for you — book a tech, pricing, or a free quote estimate?", function(){ setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🚨 Emergency",value:"emergency"}]); }); return; }
