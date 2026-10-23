@@ -478,6 +478,75 @@ function text0(){ return lastUserText; }
 var lastUserText = "";
 
 /* ============================================================
+   FLOW 5 — 60-sec comfort quiz (lead-capture pilot, fleet port 2026-10-23)
+   HONESTY (hard rule): Aria promises a personalized comfort plan plus an
+   exact written quote AT THE VISIT — NEVER invented firm prices, outcomes,
+   guarantees, or availability.
+   Router audit 2026-10-23: NO hvac router keyword starts with 'qui', and no
+   existing keyword is a prefix of the chip value 'quiz', so the quiz chip can
+   never be hijacked (the real-estate 'buy'/'buyer' word-start prefix bug class
+   is N/A on this router). */
+var QUIZ_CONCERNS = ["No cooling","No heating","Rising bills","Weird noises","Tune-up"];
+var QUIZ_TIMELINES = ["Right now — emergency","This week","This month","Just planning"];
+
+function quizCanon(t, options){
+  var tl = t.toLowerCase();
+  for(var i = 0; i < options.length; i++){ if(tl === options[i].toLowerCase()) return options[i]; }
+  return t.trim().slice(0, 60); /* free text accepted, length-capped */
+}
+function startQuiz(){
+  step = { flow:"quiz", i:0, data:{} };
+  say("The <b>60-second comfort quiz!</b> 🧲<br><br>Three quick questions and I'll build your <b>comfort profile</b> — then I'll put together a <b>personalized comfort plan</b>. No spam, no guesswork.<br><br><b>What's your top comfort concern?</b>", function(){
+    setChips(QUIZ_CONCERNS.map(function(c){ return {label:c, value:c}; }));
+  });
+}
+function quizStep(text){
+  var t = text.trim(), d = step.data;
+  if(step.i === 0){
+    d.concern = quizCanon(t, QUIZ_CONCERNS); step.i = 1;
+    say("Got it — <b>"+esc(d.concern)+"</b>. 🧲<br><br><b>When</b> do you want it sorted?", function(){
+      setChips(QUIZ_TIMELINES.map(function(x){ return {label:x, value:x}; }));
+    });
+    return;
+  }
+  if(step.i === 1){
+    d.timeline = quizCanon(t, QUIZ_TIMELINES); step.i = 2;
+    say("Noted — <b>"+esc(d.timeline)+"</b> it is. 🧲<br><br><b>What's your name</b> for the comfort profile?", function(){ setChips([]); });
+    return;
+  }
+  if(step.i === 2){
+    if(t.length < 2 || t.length > 40){ say("Just your name is fine — 2 to 40 characters 🙂"); return; }
+    d.name = t; step.i = 3;
+    var first = t.split(" ")[0]; first = first.charAt(0).toUpperCase() + first.slice(1);
+    say("Thanks, <b>"+esc(first)+"</b>! And the best <b>number</b> to send your comfort plan to?", function(){ setChips([]); });
+    return;
+  }
+  if(step.i === 3){
+    var dg = digits(text);
+    if(dg.length < 7){ say("Hmm, that doesn't look like a complete number — mind double-checking it? <i>(digits only is fine)</i>"); return; }
+    d.phone = t;
+    finishQuiz(); return;
+  }
+}
+function finishQuiz(){
+  var q = step.data;
+  saveLead({
+    name: q.name,
+    phone: q.phone,
+    topic: "Comfort quiz — qualified lead",
+    details: "Concern " + q.concern + " · Timeline " + q.timeline,
+    source: "comfort quiz"
+  });
+  step = { flow:null, i:0, data:{} }; /* back to idle before the card renders */
+  say("✅ <b>Quiz complete!</b> 🧲<br><br>Here's your comfort profile:", function(){
+    dashcard([["Concern", q.concern],["Timeline", q.timeline]]);
+    say("I'll put together your <b>personalized comfort plan</b> and send it to your number. At your visit our tech gives you an <b>exact written quote</b> before any work starts — <b>no surprise bills</b>, ever.<br><br>That's the whole point — <b>every breakdown becomes a same-day fix</b>, not a customer lost to the company with the 24/7 line. ❄️<br><br>Anything else I can help with?", function(){
+      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"}]);
+    });
+  });
+}
+
+/* ============================================================
    router
    ============================================================ */
 function route(text){
@@ -486,6 +555,7 @@ function route(text){
   if(step.flow === "afterhours"){ afterHoursStep(text); return; }
   if(step.flow === "quote")     { quoteStep(text); return; }
   if(step.flow === "review")    { reviewStep(parseInt(text,10) || 0); return; }
+  if(step.flow === "quiz")      { quizStep(text); return; }
 
   if(has(t, "emergency", "midnight", "after hour", "after-hour", "closed right now", "11:42", "no cool", "no-cool", "a/c died", "ac died", "unit died", "108")){ startAfterHours(); return; }
   /* location branch runs before service branches (word-start matching fixes the
@@ -495,6 +565,11 @@ function route(text){
   if(/book another/.test(t)){ startBooking(); return; }
   if(has(t, "quote", "estim", "ballpark")){ startQuote(); return; }
   if(has(t, "review", "rate us", "stars", "feedback")){ startReview(); return; }
+  /* 60-sec comfort quiz: word-start keywords only — audited 2026-10-23: NO hvac
+     router keyword starts with 'qui', and no existing keyword is a prefix of the
+     chip value 'quiz', so the quiz chip can never be hijacked (the real-estate
+     'buy'/'buyer' word-start prefix bug class is N/A on this router). */
+  if(has(t, "quiz", "comfort quiz", "match me")){ startQuiz(); return; }
   if(has(t, "replac", "new system", "install", "heat pump")){ say(installHtml(), function(){ setChips([{label:"Free quote estimate", value:"quote"},{label:"Book service", value:"book"}]); }); return; }
   if(has(t, "repair", "fix", "broken", "not cool", "warm air", "not working", "leak", "noise", "frozen", "died")){ say(repairHtml(), function(){ setChips([{label:"Book a tech visit", value:"book"},{label:"Pricing", value:"pricing"}]); }); return; }
   if(has(t, "tune up", "tune-up", "tuneup", "mainten", "check up", "check-up", "checkup", "comfort club")){ say(tuneupHtml(), function(){ setChips([{label:"Book tune-up", value:"book"},{label:"Comfort Club info", value:"tune-up"}]); }); return; }
@@ -556,7 +631,7 @@ function greet(){
     "Hi there! ❄️ I'm <b>"+esc(HOST)+"</b>, the comfort coordinator at <b>"+esc(BIZ)+"</b>.",
     "I can book a tech visit, answer pricing questions, run a free quote estimate — and if your AC dies at midnight, I'm still here. 🚨<br><br>How can I help?"
   ], function(){
-    setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"AC repair pricing",value:"repair pricing"},{label:"🚨 Emergency",value:"emergency"}]);
+    setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"AC repair pricing",value:"repair pricing"},{label:"🚨 Emergency",value:"emergency"},{label:"🧲 60-sec comfort quiz",value:"quiz"}]);
   });
   setTimeout(function(){ markUnread(); }, FAST ? 100 : 2500);
 }
