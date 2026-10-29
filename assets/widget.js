@@ -541,7 +541,72 @@ function finishQuiz(){
   say("✅ <b>Quiz complete!</b> 🧲<br><br>Here's your comfort profile:", function(){
     dashcard([["Concern", q.concern],["Timeline", q.timeline]]);
     say("I'll put together your <b>personalized comfort plan</b> and send it to your number. At your visit our tech gives you an <b>exact written quote</b> before any work starts — <b>no surprise bills</b>, ever.<br><br>That's the whole point — <b>every breakdown becomes a same-day fix</b>, not a customer lost to the company with the 24/7 line. ❄️<br><br>Anything else I can help with?", function(){
-      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"}]);
+      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"}]);
+    });
+  });
+}
+
+/* ============================================================
+   FLOW 6 — 60-sec consult-prep quiz (fleet second-quiz port, 2026-10-29)
+   HONESTY (hard rule): Aria promises a personalized comfort plan built
+   around the visitor's priority, plus what to have ready for the visit —
+   NEVER invented prices, outcomes, guarantees, or availability.
+   Router audit 2026-10-29: the 'prep quiz' trigger MUST sit BEFORE the
+   comfort-quiz trigger — 'prep quiz' contains 'quiz', and the comfort
+   quiz's word-start 'quiz' match would otherwise hijack it into the
+   comfort quiz (the real-estate 'buy'/'buyer' word-start prefix bug class,
+   2026-10-20). Bare 'prep' alone triggers nothing. */
+var PREP_PRIORS = ["First time here", "Had service before", "On a maintenance plan"];
+var PREP_PRIORITIES = ["Lower energy bills", "Even temperatures", "Fewer breakdowns", "Cleaner air"];
+
+function startPrepQuiz(){
+  step = { flow:"prep", i:0, data:{} };
+  say("The <b>60-second consult-prep quiz!</b> 📋<br><br>Two quick questions and I'll build your <b>consult-prep profile</b> — then I'll put together a <b>personalized comfort plan</b> built around what matters most to you, plus what to have ready for your visit. No spam, no guesswork.<br><br><b>First: what's your HVAC service history?</b>", function(){
+    setChips(PREP_PRIORS.map(function(c){ return {label:c, value:c}; }));
+  });
+}
+function prepStep(text){
+  var t = text.trim(), d = step.data;
+  if(step.i === 0){
+    d.prior = quizCanon(t, PREP_PRIORS); step.i = 1;
+    say("Got it — <b>"+esc(d.prior)+"</b>. 📋<br><br><b>What matters most</b> for your visit?", function(){
+      setChips(PREP_PRIORITIES.map(function(x){ return {label:x, value:x}; }));
+    });
+    return;
+  }
+  if(step.i === 1){
+    d.priority = quizCanon(t, PREP_PRIORITIES); step.i = 2;
+    say("Noted — <b>"+esc(d.priority)+"</b> it is. 📋<br><br><b>What's your name</b> for the consult-prep profile?", function(){ setChips([]); });
+    return;
+  }
+  if(step.i === 2){
+    if(t.length < 2 || t.length > 40){ say("Just your name is fine — 2 to 40 characters 🙂"); return; }
+    d.name = t; step.i = 3;
+    var first = t.split(" ")[0]; first = first.charAt(0).toUpperCase() + first.slice(1);
+    say("Thanks, <b>"+esc(first)+"</b>! And the best <b>number</b> to send your comfort plan to?", function(){ setChips([]); });
+    return;
+  }
+  if(step.i === 3){
+    var dg = digits(text);
+    if(dg.length < 7){ say("Hmm, that doesn't look like a complete number — mind double-checking it? <i>(digits only is fine)</i>"); return; }
+    d.phone = t;
+    finishPrepQuiz(); return;
+  }
+}
+function finishPrepQuiz(){
+  var q = step.data;
+  saveLead({
+    name: q.name,
+    phone: q.phone,
+    topic: "Consult-prep quiz — qualified lead",
+    details: "Prior " + q.prior + " · Priority " + q.priority,
+    source: "consult-prep quiz"
+  });
+  step = { flow:null, i:0, data:{} }; /* back to idle before the card renders */
+  say("✅ <b>Quiz complete!</b> 📋<br><br>Here's your consult-prep profile:", function(){
+    dashcard([["Prior", q.prior],["Priority", q.priority]]);
+    say("I'll put together a <b>personalized comfort plan</b> built around your priority and send it to your number — plus what to have ready for the visit (your system's age and any recent bills, if you have them handy), so the visit is all signal, no guesswork.<br><br>That's the whole point — <b>every breakdown becomes a same-day fix</b>, not a customer lost to the company with the 24/7 line. ❄️<br><br>Anything else I can help with?", function(){
+      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"}]);
     });
   });
 }
@@ -556,6 +621,7 @@ function route(text){
   if(step.flow === "quote")     { quoteStep(text); return; }
   if(step.flow === "review")    { reviewStep(parseInt(text,10) || 0); return; }
   if(step.flow === "quiz")      { quizStep(text); return; }
+  if(step.flow === "prep")      { prepStep(text); return; }
 
   if(has(t, "emergency", "midnight", "after hour", "after-hour", "closed right now", "11:42", "no cool", "no-cool", "a/c died", "ac died", "unit died", "108")){ startAfterHours(); return; }
   /* location branch runs before service branches (word-start matching fixes the
@@ -565,6 +631,11 @@ function route(text){
   if(/book another/.test(t)){ startBooking(); return; }
   if(has(t, "quote", "estim", "ballpark")){ startQuote(); return; }
   if(has(t, "review", "rate us", "stars", "feedback")){ startReview(); return; }
+  /* 60-sec consult-prep quiz: trigger BEFORE the comfort-quiz trigger — the chip
+     value 'prep quiz' contains 'quiz', so the comfort quiz's word-start 'quiz'
+     match would otherwise hijack it into the comfort quiz (the real-estate
+     'buy'/'buyer' bug class, 2026-10-20). Bare 'prep' alone triggers nothing. */
+  if(has(t, "prep quiz", "consult prep quiz")){ startPrepQuiz(); return; }
   /* 60-sec comfort quiz: word-start keywords only — audited 2026-10-23: NO hvac
      router keyword starts with 'qui', and no existing keyword is a prefix of the
      chip value 'quiz', so the quiz chip can never be hijacked (the real-estate
@@ -631,7 +702,7 @@ function greet(){
     "Hi there! ❄️ I'm <b>"+esc(HOST)+"</b>, the comfort coordinator at <b>"+esc(BIZ)+"</b>.",
     "I can book a tech visit, answer pricing questions, run a free quote estimate — and if your AC dies at midnight, I'm still here. 🚨<br><br>How can I help?"
   ], function(){
-    setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"AC repair pricing",value:"repair pricing"},{label:"🚨 Emergency",value:"emergency"},{label:"🧲 60-sec comfort quiz",value:"quiz"}]);
+    setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"AC repair pricing",value:"repair pricing"},{label:"🚨 Emergency",value:"emergency"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"}]);
   });
   setTimeout(function(){ markUnread(); }, FAST ? 100 : 2500);
 }
