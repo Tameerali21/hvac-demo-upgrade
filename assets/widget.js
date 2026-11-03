@@ -541,7 +541,7 @@ function finishQuiz(){
   say("✅ <b>Quiz complete!</b> 🧲<br><br>Here's your comfort profile:", function(){
     dashcard([["Concern", q.concern],["Timeline", q.timeline]]);
     say("I'll put together your <b>personalized comfort plan</b> and send it to your number. At your visit our tech gives you an <b>exact written quote</b> before any work starts — <b>no surprise bills</b>, ever.<br><br>That's the whole point — <b>every breakdown becomes a same-day fix</b>, not a customer lost to the company with the 24/7 line. ❄️<br><br>Anything else I can help with?", function(){
-      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"}]);
+      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"},{label:"🔥 60-sec winter-ready quiz",value:"winter quiz"}]);
     });
   });
 }
@@ -606,7 +606,76 @@ function finishPrepQuiz(){
   say("✅ <b>Quiz complete!</b> 📋<br><br>Here's your consult-prep profile:", function(){
     dashcard([["Prior", q.prior],["Priority", q.priority]]);
     say("I'll put together a <b>personalized comfort plan</b> built around your priority and send it to your number — plus what to have ready for the visit (your system's age and any recent bills, if you have them handy), so the visit is all signal, no guesswork.<br><br>That's the whole point — <b>every breakdown becomes a same-day fix</b>, not a customer lost to the company with the 24/7 line. ❄️<br><br>Anything else I can help with?", function(){
-      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"}]);
+      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"},{label:"🔥 60-sec winter-ready quiz",value:"winter quiz"}]);
+    });
+  });
+}
+
+/* ============================================================
+   FLOW 7 — 60-sec winter-ready quiz (fleet third-quiz port, 2026-11-03)
+   HONESTY (hard rule): Aria promises a personalized winter-ready plan built
+   around the visitor's worry, plus what to have ready for the visit, and the
+   tech confirms the actual tune-up slot on the call — NEVER invented prices,
+   availability, slots held, outcomes, or guarantees.
+   Router audit 2026-11-03: the 'winter quiz' trigger MUST sit BEFORE both the
+   prep-quiz trigger and the comfort-quiz trigger — the chip value 'winter
+   quiz' contains 'quiz', so the comfort quiz's word-start 'quiz' match would
+   otherwise hijack it into the comfort quiz (the real-estate 'buy'/'buyer'
+   word-start prefix bug class, 2026-10-20). Audit: 'winter' is not any
+   existing router keyword and no existing keyword is a prefix of 'winter
+   quiz'; bare 'winter' alone triggers nothing; bare 'quiz' still starts the
+   comfort quiz; 'prep quiz' still starts the prep quiz. */
+var WINTER_HEATINGS = ["Furnace", "Heat pump", "Boiler / radiators", "Not sure"];
+var WINTER_WORRIES = ["Cold rooms", "High heating bills", "Breakdown risk", "Just a check-up"];
+
+function startWinterQuiz(){
+  step = { flow:"winter", i:0, data:{} };
+  say("The <b>60-second winter-ready quiz!</b> 🔥<br><br>Two quick questions and I'll build your <b>winter-ready profile</b> — then I'll put together a <b>personalized winter-ready plan</b> built around your biggest winter worry, plus what to have ready for your visit. No spam, no guesswork.<br><br><b>First: what heats your home?</b>", function(){
+    setChips(WINTER_HEATINGS.map(function(c){ return {label:c, value:c}; }));
+  });
+}
+function winterStep(text){
+  var t = text.trim(), d = step.data;
+  if(step.i === 0){
+    d.heating = quizCanon(t, WINTER_HEATINGS); step.i = 1;
+    say("Got it — <b>"+esc(d.heating)+"</b>. 🔥<br><br><b>What's your biggest winter worry?</b>", function(){
+      setChips(WINTER_WORRIES.map(function(x){ return {label:x, value:x}; }));
+    });
+    return;
+  }
+  if(step.i === 1){
+    d.worry = quizCanon(t, WINTER_WORRIES); step.i = 2;
+    say("Noted — <b>"+esc(d.worry)+"</b> it is. 🔥<br><br><b>What's your name</b> for the winter-ready profile?", function(){ setChips([]); });
+    return;
+  }
+  if(step.i === 2){
+    if(t.length < 2 || t.length > 40){ say("Just your name is fine — 2 to 40 characters 🙂"); return; }
+    d.name = t; step.i = 3;
+    var first = t.split(" ")[0]; first = first.charAt(0).toUpperCase() + first.slice(1);
+    say("Thanks, <b>"+esc(first)+"</b>! And the best <b>number</b> to send your winter-ready plan to?", function(){ setChips([]); });
+    return;
+  }
+  if(step.i === 3){
+    var dg = digits(text);
+    if(dg.length < 7){ say("Hmm, that doesn't look like a complete number — mind double-checking it? <i>(digits only is fine)</i>"); return; }
+    d.phone = t;
+    finishWinterQuiz(); return;
+  }
+}
+function finishWinterQuiz(){
+  var q = step.data;
+  saveLead({
+    name: q.name,
+    phone: q.phone,
+    topic: "Winter-ready quiz — qualified lead",
+    details: "Heating " + q.heating + " · Worry " + q.worry,
+    source: "winter quiz"
+  });
+  step = { flow:null, i:0, data:{} }; /* back to idle before the card renders */
+  say("✅ <b>Quiz complete!</b> 🔥<br><br>Here's your winter-ready profile:", function(){
+    dashcard([["Heating", q.heating],["Worry", q.worry]]);
+    say("I'll put together a <b>personalized winter-ready plan</b> built around your worry and send it to your number — plus what to have ready for the visit (your system's age and any recent bills, if you have them handy), so the visit is all signal, no guesswork. On the call, our tech confirms the actual tune-up slot with you — no guessing, no pressure.<br><br>That's the whole point — <b>every breakdown becomes a same-day fix</b>, not a customer lost to the company with the 24/7 line. ❄️<br><br>Anything else I can help with?", function(){
+      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"},{label:"🔥 60-sec winter-ready quiz",value:"winter quiz"}]);
     });
   });
 }
@@ -622,6 +691,7 @@ function route(text){
   if(step.flow === "review")    { reviewStep(parseInt(text,10) || 0); return; }
   if(step.flow === "quiz")      { quizStep(text); return; }
   if(step.flow === "prep")      { prepStep(text); return; }
+  if(step.flow === "winter")    { winterStep(text); return; }
 
   if(has(t, "emergency", "midnight", "after hour", "after-hour", "closed right now", "11:42", "no cool", "no-cool", "a/c died", "ac died", "unit died", "108")){ startAfterHours(); return; }
   /* location branch runs before service branches (word-start matching fixes the
@@ -631,6 +701,15 @@ function route(text){
   if(/book another/.test(t)){ startBooking(); return; }
   if(has(t, "quote", "estim", "ballpark")){ startQuote(); return; }
   if(has(t, "review", "rate us", "stars", "feedback")){ startReview(); return; }
+  /* 60-sec winter-ready quiz: trigger BEFORE both the prep-quiz trigger and
+     the comfort-quiz trigger — the chip value 'winter quiz' contains 'quiz',
+     so the comfort quiz's word-start 'quiz' match would otherwise hijack it
+     into the comfort quiz (the real-estate 'buy'/'buyer' bug class,
+     2026-10-20). Audit: 'winter' is not any existing router keyword and no
+     existing keyword is a prefix of 'winter quiz'; bare 'winter' alone
+     triggers nothing; bare 'quiz' still starts the comfort quiz; 'prep quiz'
+     still starts the prep quiz. */
+  if(has(t, "winter quiz", "winter-ready quiz")){ startWinterQuiz(); return; }
   /* 60-sec consult-prep quiz: trigger BEFORE the comfort-quiz trigger — the chip
      value 'prep quiz' contains 'quiz', so the comfort quiz's word-start 'quiz'
      match would otherwise hijack it into the comfort quiz (the real-estate
@@ -702,7 +781,7 @@ function greet(){
     "Hi there! ❄️ I'm <b>"+esc(HOST)+"</b>, the comfort coordinator at <b>"+esc(BIZ)+"</b>.",
     "I can book a tech visit, answer pricing questions, run a free quote estimate — and if your AC dies at midnight, I'm still here. 🚨<br><br>How can I help?"
   ], function(){
-    setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"AC repair pricing",value:"repair pricing"},{label:"🚨 Emergency",value:"emergency"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"}]);
+    setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"AC repair pricing",value:"repair pricing"},{label:"🚨 Emergency",value:"emergency"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"},{label:"🔥 60-sec winter-ready quiz",value:"winter quiz"}]);
   });
   setTimeout(function(){ markUnread(); }, FAST ? 100 : 2500);
 }

@@ -40,6 +40,7 @@ All injected values are HTML-escaped.
 3. **Emergency / after-hours lead capture** — 11:42 PM notice, issue chips, urgency flag (`HIGH — no cooling` vs `Priority`), name + phone (validated), saved lead + owner dashboard card. Money line: *"every midnight breakdown becomes a morning dispatch, not a customer lost to the company with the 24/7 line."*
 4. **Free quote estimator** — home size → system age → intent → ballpark range, with a nudge to the free in-home quote.
 5. **Review request** — 5★ → Google review button; 1–4 → private feedback saved, "service manager will personally follow up".
+6. **60-sec quizzes** — comfort (2026-10-23), consult-prep (2026-10-29), winter-ready (2026-11-03): heating system → winter worry → name → phone (digit-less input rejected) → winter-ready profile card (Heating · Worry) + personalized winter-ready plan; tech confirms the actual tune-up slot on the call — never invented prices, availability, slots held, outcomes, or guarantees. Trigger `winter quiz` sits before both prep and comfort triggers (chip value contains `quiz`).
 
 Leads persist in `localStorage` under `nmc_hvac_leads` (the "Saved to your dashboard"
 card is real). Honest "How it works" section (no invented testimonials or review
