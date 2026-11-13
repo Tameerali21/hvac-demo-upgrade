@@ -541,7 +541,7 @@ function finishQuiz(){
   say("✅ <b>Quiz complete!</b> 🧲<br><br>Here's your comfort profile:", function(){
     dashcard([["Concern", q.concern],["Timeline", q.timeline]]);
     say("I'll put together your <b>personalized comfort plan</b> and send it to your number. At your visit our tech gives you an <b>exact written quote</b> before any work starts — <b>no surprise bills</b>, ever.<br><br>That's the whole point — <b>every breakdown becomes a same-day fix</b>, not a customer lost to the company with the 24/7 line. ❄️<br><br>Anything else I can help with?", function(){
-      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"},{label:"🔥 60-sec winter-ready quiz",value:"winter quiz"},{label:"⚡ 60-sec energy-savings quiz",value:"energy quiz"}]);
+      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"},{label:"🔥 60-sec winter-ready quiz",value:"winter quiz"},{label:"⚡ 60-sec energy-savings quiz",value:"energy quiz"},{label:"🏠 60-sec replacement quiz",value:"replacement quiz"}]);
     });
   });
 }
@@ -606,7 +606,7 @@ function finishPrepQuiz(){
   say("✅ <b>Quiz complete!</b> 📋<br><br>Here's your consult-prep profile:", function(){
     dashcard([["Prior", q.prior],["Priority", q.priority]]);
     say("I'll put together a <b>personalized comfort plan</b> built around your priority and send it to your number — plus what to have ready for the visit (your system's age and any recent bills, if you have them handy), so the visit is all signal, no guesswork.<br><br>That's the whole point — <b>every breakdown becomes a same-day fix</b>, not a customer lost to the company with the 24/7 line. ❄️<br><br>Anything else I can help with?", function(){
-      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"},{label:"🔥 60-sec winter-ready quiz",value:"winter quiz"},{label:"⚡ 60-sec energy-savings quiz",value:"energy quiz"}]);
+      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"},{label:"🔥 60-sec winter-ready quiz",value:"winter quiz"},{label:"⚡ 60-sec energy-savings quiz",value:"energy quiz"},{label:"🏠 60-sec replacement quiz",value:"replacement quiz"}]);
     });
   });
 }
@@ -675,7 +675,7 @@ function finishWinterQuiz(){
   say("✅ <b>Quiz complete!</b> 🔥<br><br>Here's your winter-ready profile:", function(){
     dashcard([["Heating", q.heating],["Worry", q.worry]]);
     say("I'll put together a <b>personalized winter-ready plan</b> built around your worry and send it to your number — plus what to have ready for the visit (your system's age and any recent bills, if you have them handy), so the visit is all signal, no guesswork. On the call, our tech confirms the actual tune-up slot with you — no guessing, no pressure.<br><br>That's the whole point — <b>every breakdown becomes a same-day fix</b>, not a customer lost to the company with the 24/7 line. ❄️<br><br>Anything else I can help with?", function(){
-      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"},{label:"🔥 60-sec winter-ready quiz",value:"winter quiz"},{label:"⚡ 60-sec energy-savings quiz",value:"energy quiz"}]);
+      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"},{label:"🔥 60-sec winter-ready quiz",value:"winter quiz"},{label:"⚡ 60-sec energy-savings quiz",value:"energy quiz"},{label:"🏠 60-sec replacement quiz",value:"replacement quiz"}]);
     });
   });
 }
@@ -687,11 +687,12 @@ function finishWinterQuiz(){
    visit, and the tech confirms the actual savings estimate on the call —
    NEVER invented savings amounts, prices, availability, slots held,
    outcomes, or guarantees.
-   Router audit 2026-11-08: the 'energy quiz' trigger MUST sit FIRST, before
-   the winter-quiz trigger (and therefore before prep and comfort) — the chip
-   value 'energy quiz' contains 'quiz', so the comfort quiz's word-start
-   'quiz' match would otherwise hijack it into the comfort quiz (the
-   real-estate 'buy'/'buyer' word-start prefix bug class, 2026-10-20).
+   Router audit 2026-11-08 (amended 2026-11-13): the 'energy quiz' trigger
+   MUST sit BEFORE the winter-quiz trigger (and therefore before prep and
+   comfort), AFTER the replacement-quiz trigger — the chip value 'energy
+   quiz' contains 'quiz', so the comfort quiz's word-start 'quiz' match
+   would otherwise hijack it into the comfort quiz (the real-estate
+   'buy'/'buyer' word-start prefix bug class, 2026-10-20).
    Audit: 'energy' is not any existing router keyword and no existing keyword
    is a prefix of 'energy quiz' ('emergency'/'estim' do not match); bare
    'energy' alone triggers nothing; bare 'quiz' still starts the comfort
@@ -746,7 +747,81 @@ function finishEnergyQuiz(){
   say("✅ <b>Quiz complete!</b> ⚡<br><br>Here's your energy-savings profile:", function(){
     dashcard([["Bills", q.bills],["Age", q.age]]);
     say("I'll put together a <b>personalized energy-savings plan</b> built around your bills and your system's age and send it to your number — plus what to have ready for the visit (your system's age and any recent bills, if you have them handy), so the visit is all signal, no guesswork. On the call, our tech confirms the actual savings estimate with you — no guessing, no pressure.<br><br>That's the whole point — <b>every breakdown becomes a same-day fix</b>, not a customer lost to the company with the 24/7 line. ❄️<br><br>Anything else I can help with?", function(){
-      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"},{label:"🔥 60-sec winter-ready quiz",value:"winter quiz"},{label:"⚡ 60-sec energy-savings quiz",value:"energy quiz"}]);
+      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"},{label:"🔥 60-sec winter-ready quiz",value:"winter quiz"},{label:"⚡ 60-sec energy-savings quiz",value:"energy quiz"},{label:"🏠 60-sec replacement quiz",value:"replacement quiz"}]);
+    });
+  });
+}
+
+/* ============================================================
+   FLOW 9 — 60-sec replacement quiz (fleet fifth-quiz port, 2026-11-13)
+   HONESTY (hard rule): Aria promises a personalized replacement plan built
+   around the visitor's system + age, and the tech confirms the actual
+   replacement quote on the call — NEVER invented prices, outcomes,
+   availability, slots held, or guarantees.
+   Router audit 2026-11-13: the 'replacement quiz' trigger MUST sit FIRST,
+   before the energy-quiz trigger (and therefore before winter, prep and
+   comfort) — the chip value 'replacement quiz' contains 'quiz', so the
+   comfort quiz's word-start 'quiz' match would otherwise hijack it into the
+   comfort quiz (the real-estate 'buy'/'buyer' bug class, 2026-10-20).
+   Audit: 'replacement' is not any existing router keyword above the quiz
+   triggers (emergency/location/book/quote/review keywords do not match
+   'replacement quiz' / 'replace quiz'); the install branch `has(t,
+   "replac", "new system", "install", "heat pump")` sits BELOW the quiz
+   triggers, so bare 'replacement' / 'replace' / 'new system' still reach
+   installHtml(); bare 'replacement' alone triggers nothing in the quiz
+   triggers; bare 'quiz' still starts the comfort quiz; 'energy quiz' /
+   'winter quiz' / 'prep quiz' still start theirs. */
+var REPLACEMENT_SYSTEMS = ["Repairs every year", "Runs fine, just old", "Struggles in summer heat", "Not sure — never checked"];
+var REPLACEMENT_AGES = ["Under 8 years", "8–12 years", "12–15 years", "15+ years"];
+
+function startReplacementQuiz(){
+  step = { flow:"replacement", i:0, data:{} };
+  say("The <b>60-second replacement quiz!</b> 🏠<br><br>Two quick questions and I'll build your <b>replacement profile</b> — then I'll put together a <b>personalized replacement plan</b> built around your system and its age. No spam, no guesswork.<br><br><b>First: how's your current system holding up?</b>", function(){
+    setChips(REPLACEMENT_SYSTEMS.map(function(c){ return {label:c, value:c}; }));
+  });
+}
+function replacementStep(text){
+  var t = text.trim(), d = step.data;
+  if(step.i === 0){
+    d.system = quizCanon(t, REPLACEMENT_SYSTEMS); step.i = 1;
+    say("Got it — <b>"+esc(d.system)+"</b>. 🏠<br><br><b>How old is your system?</b>", function(){
+      setChips(REPLACEMENT_AGES.map(function(x){ return {label:x, value:x}; }));
+    });
+    return;
+  }
+  if(step.i === 1){
+    d.age = quizCanon(t, REPLACEMENT_AGES); step.i = 2;
+    say("Noted — <b>"+esc(d.age)+"</b> it is. 🏠<br><br><b>What's your name</b> for the replacement profile?", function(){ setChips([]); });
+    return;
+  }
+  if(step.i === 2){
+    if(t.length < 2 || t.length > 40){ say("Just your name is fine — 2 to 40 characters 🙂"); return; }
+    d.name = t; step.i = 3;
+    var first = t.split(" ")[0]; first = first.charAt(0).toUpperCase() + first.slice(1);
+    say("Thanks, <b>"+esc(first)+"</b>! And the best <b>number</b> to send your replacement plan to?", function(){ setChips([]); });
+    return;
+  }
+  if(step.i === 3){
+    var dg = digits(text);
+    if(dg.length < 7){ say("Hmm, that doesn't look like a complete number — mind double-checking it? <i>(digits only is fine)</i>"); return; }
+    d.phone = t;
+    finishReplacementQuiz(); return;
+  }
+}
+function finishReplacementQuiz(){
+  var q = step.data;
+  saveLead({
+    name: q.name,
+    phone: q.phone,
+    topic: "Replacement quiz — qualified lead",
+    details: "System " + q.system + " · Age " + q.age,
+    source: "replacement quiz"
+  });
+  step = { flow:null, i:0, data:{} }; /* back to idle before the card renders */
+  say("✅ <b>Quiz complete!</b> 🏠<br><br>Here's your replacement profile:", function(){
+    dashcard([["System", q.system],["Age", q.age]]);
+    say("I'll put together a <b>personalized replacement plan</b> built around your system and its age and send it to your number — plus what to have ready for the visit (your system's age and any recent bills, if you have them handy), so the visit is all signal, no guesswork. On the call, our tech confirms the actual replacement quote with you — no guessing, no pressure.<br><br>That's the whole point — <b>every breakdown becomes a same-day fix</b>, not a customer lost to the company with the 24/7 line. ❄️<br><br>Anything else I can help with?", function(){
+      setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"},{label:"🔥 60-sec winter-ready quiz",value:"winter quiz"},{label:"⚡ 60-sec energy-savings quiz",value:"energy quiz"},{label:"🏠 60-sec replacement quiz",value:"replacement quiz"}]);
     });
   });
 }
@@ -764,6 +839,7 @@ function route(text){
   if(step.flow === "prep")      { prepStep(text); return; }
   if(step.flow === "winter")    { winterStep(text); return; }
   if(step.flow === "energy")    { energyStep(text); return; }
+  if(step.flow === "replacement"){ replacementStep(text); return; }
 
   if(has(t, "emergency", "midnight", "after hour", "after-hour", "closed right now", "11:42", "no cool", "no-cool", "a/c died", "ac died", "unit died", "108")){ startAfterHours(); return; }
   /* location branch runs before service branches (word-start matching fixes the
@@ -773,8 +849,21 @@ function route(text){
   if(/book another/.test(t)){ startBooking(); return; }
   if(has(t, "quote", "estim", "ballpark")){ startQuote(); return; }
   if(has(t, "review", "rate us", "stars", "feedback")){ startReview(); return; }
-  /* 60-sec energy-savings quiz: trigger FIRST, before the winter-quiz trigger
-     (and therefore before prep and comfort) — the chip value 'energy quiz'
+  /* 60-sec replacement quiz: trigger FIRST, before the energy-quiz trigger
+     (and therefore before winter, prep and comfort) — the chip value
+     'replacement quiz' contains 'quiz', so the comfort quiz's word-start
+     'quiz' match would otherwise hijack it into the comfort quiz (the
+     real-estate 'buy'/'buyer' bug class, 2026-10-20). Audit: 'replacement'
+     is not any existing router keyword above the quiz triggers
+     (emergency/location/book/quote/review keywords do not match); the
+     install branch (keyword 'replac') sits BELOW the quiz triggers, so
+     bare 'replacement' / 'replace' / 'new system' still reach installHtml();
+     bare 'replacement' alone triggers nothing here; bare 'quiz' still starts
+     the comfort quiz; 'energy quiz'/'winter quiz'/'prep quiz' still start
+     theirs. */
+  if(has(t, "replacement quiz", "replace quiz")){ startReplacementQuiz(); return; }
+  /* 60-sec energy-savings quiz: trigger BEFORE the winter-quiz trigger
+     (after the replacement-quiz trigger, and therefore before prep and
      contains 'quiz', so the comfort quiz's word-start 'quiz' match would
      otherwise hijack it into the comfort quiz (the real-estate 'buy'/'buyer'
      bug class, 2026-10-20). Audit: 'energy' is not any existing router
@@ -863,7 +952,7 @@ function greet(){
     "Hi there! ❄️ I'm <b>"+esc(HOST)+"</b>, the comfort coordinator at <b>"+esc(BIZ)+"</b>.",
     "I can book a tech visit, answer pricing questions, run a free quote estimate — and if your AC dies at midnight, I'm still here. 🚨<br><br>How can I help?"
   ], function(){
-    setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"AC repair pricing",value:"repair pricing"},{label:"🚨 Emergency",value:"emergency"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"},{label:"🔥 60-sec winter-ready quiz",value:"winter quiz"},{label:"⚡ 60-sec energy-savings quiz",value:"energy quiz"}]);
+    setChips([{label:"Book service",value:"book"},{label:"Free quote estimate",value:"quote"},{label:"AC repair pricing",value:"repair pricing"},{label:"🚨 Emergency",value:"emergency"},{label:"🧲 60-sec comfort quiz",value:"quiz"},{label:"📋 60-sec consult-prep quiz",value:"prep quiz"},{label:"🔥 60-sec winter-ready quiz",value:"winter quiz"},{label:"⚡ 60-sec energy-savings quiz",value:"energy quiz"},{label:"🏠 60-sec replacement quiz",value:"replacement quiz"}]);
   });
   setTimeout(function(){ markUnread(); }, FAST ? 100 : 2500);
 }
